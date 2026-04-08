@@ -1,5 +1,7 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SocialPlatforms.Impl;
 
 /// <summary>
 /// IPointerClickHandler interface is used to detect pointer click events.
@@ -16,10 +18,18 @@ public class Target : MonoBehaviour, IPointerClickHandler
 
     public int point;
     public ParticleSystem explosionParticle;
+    private GameManager gm;
+
+
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        rb.AddForce(RandomForce(), ForceMode.Impulse);
+        rb.AddTorque(RandomTorque(), RandomTorque(), RandomTorque());
+        transform.position = RandomSpawnPos();
+        gm = FindAnyObjectByType<GameManager>();
+
     }
 
     Vector3 RandomForce()
@@ -40,11 +50,24 @@ public class Target : MonoBehaviour, IPointerClickHandler
     // NOTE: OnPointerClick is part of IPointerClickHandler interface
     public void OnPointerClick(PointerEventData eventData)
     {
+        Debug.Log("Click");
+        Destroy(this.gameObject);
 
+        gm.UpdateScore(point);
+
+        Instantiate(explosionParticle,transform.position,Quaternion.identity);
     }
 
     private void OnTriggerEnter(Collider other)
     {
+        if (other.CompareTag("Sensor"))
+        {
+            Destroy(this.gameObject);
 
+            if (CompareTag("Good"))
+            {
+                gm.UpdateScore(-point);
+            }
+        }
     }
 }
